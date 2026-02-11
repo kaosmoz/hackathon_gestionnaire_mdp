@@ -1,3 +1,25 @@
+import express from 'express' ;
+import { validateRegister, validateLogin } from '../3_middlewares/validation.middleware.js' ;
+import { register, verifyEmail, login, resetPasswordRequest, resetPassword  } from '../4_controllers/auth.controller.js' ;
+
+
+const router = express.Router() ;
+
+router.post('/register', validateRegister, register ) ;
+
+router.post('/login', validateLogin, login ) ;
+
+router.get('/verify', verifyEmail ) ;
+
+router.post('/reset-password-request', resetPasswordRequest ) ;
+
+router.post('/reset-password', resetPassword ) ;
+
+
+export default router ;
+
+
+
 /**
  * auth.routes.js – Routes liées à l’authentification
  *

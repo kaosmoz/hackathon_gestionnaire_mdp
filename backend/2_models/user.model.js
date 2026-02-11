@@ -1,4 +1,4 @@
-import { db } from '../1_config/db.js' ;
+import  db  from '../1_config/db.js' ;
 
 export const createUser = async (
   email,
