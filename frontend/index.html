@@ -1,13 +1,34 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de mot de passe </title>
+    <link rel="stylesheet" href="style .css">
+</head>
+<body>
+    <div class="container">
+        <h1> Gestionnaire de mot de passe </h1>
+        
+        <form id="passwordForm">
+            <label for="serviceName"> GMAIL </label>
+            <input type="text" id="serviceName" name="serviceName" required>
+            
+            <label for="username"> PSEUDODYME </label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password"> Mot de passe </label>
+            <input type="password" id="password" name="password" required>
+      
+        </div>      
+            <button type="submit"> Confirmer mot de passe </button>
+        </form>
+        
+        <div id="passwordsList">
+            <h2>Mot de passe sauvegarder </h2>
+            <ul id="passwords"></ul>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
 </html>

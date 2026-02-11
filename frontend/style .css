@@ -1,0 +1,137 @@
+c/* --- CONFIGURATION DES COULEURS --- */
+:root {
+    --bg-dark: #050505;          /* Noir profond atmosphérique */
+    --card-bg: #0f111a;          /* Bleu-noir base de données */
+    --accent-blue: #3b82f6;      /* Bleu électrique pour les labels */
+    --accent-purple: #a855f7;    /* Violet pour les actions */
+    --pure-white: #ffffff;
+    --border-thick: 3px solid #000000; /* Contour noir robuste */
+}
+
+/* --- FONDATIONS DU GUERRIER --- */
+body {
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+    /* Dégradé radial pour l'effet d'atmosphère */
+    background: radial-gradient(circle at center, #1e1b4b 0%, #050505 100%);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--pure-white);
+}
+
+/* --- LA STRUCTURE CENTRALE (BASE CLASSIC) --- */
+.container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 420px;
+    padding: 40px;
+    border: var(--border-thick);
+    /* L'effet épuré avec une ombre noire marquée */
+    box-shadow: 12px 12px 0px #000000;
+    border-radius: 4px; /* Presque carré pour la solidité */
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+    border-bottom: var(--border-thick);
+    padding-bottom: 10px;
+}
+
+/* --- FORMULAIRE & SAISIE --- */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+input {
+    background: #1a1c26;
+    border: 2px solid #000000;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: var(--pure-white);
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    background: #242736;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* --- BOUTON D'ACTION (LE COEUR DU PROJET) --- */
+button {
+    background-color: var(--accent-blue);
+    color: var(--pure-white);
+    border: var(--border-thick);
+    padding: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 5px 5px 0px #000000;
+    transition: all 0.1s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: var(--accent-purple);
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px #000000;
+}
+
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+/* --- LISTE DES MOTS DE PASSE SAUVEGARDÉS --- */
+#passwordsList {
+    margin-top: 40px;
+}
+
+h2 {
+    font-size: 0.9rem;
+    color: var(--accent-purple);
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+ul {
+    padding: 0;
+    list-style: none;
+}
+
+/* Style pour les éléments que ton JS va générer */
+.password-item {
+    background: #141620;
+    border: 2px solid #000000;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.password-item strong {
+    color: var(--accent-blue);
+}
