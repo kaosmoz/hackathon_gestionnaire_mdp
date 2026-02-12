@@ -1,83 +1,109 @@
-import  argon2  from 'argon2' ;
-import jwt from 'jsonwebtoken' ;
-import { v4 as uuid4 } from 'uuid' ;
-import 'dotenv/config' ;
-import  db  from '../1_config/db.js' ;
-import { createUser, findUserByEmail, verifyUser, findUserByVerifyToken, saveResetPassword, findUserByResetToken, updatePassword } from '../2_models/user.model.js' ;
-import { sendVerificationMail, sendResetPasswordMail } from '../1_config/mailer.js' ;
- 
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import { createUser, findUserByEmail, findUserByVerifyToken, verifyUser } from '../2_models/user.model.js';
+import { sendVerificationMail } from '../1_config/mailer.js';
 
+// ---------------- REGISTER ----------------
 export const register = async (req, res) => {
-    try {
-        
-const {email, password } = req.body ;
+  try {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ success: false, message: 'Email et mot de passe requis' });
 
-const existing = await findUserByEmail(email) ;
+    const existing = await findUserByEmail(email);
+    if (existing)
+      return res.status(400).json({ success: false, message: 'Email déjà utilisé' });
 
-if(existing) return res.status(400).json({message: `L'email existe déjà!`}) ;
+    const passwordHash = await argon2.hash(password);
+    const verifyToken = uuidv4();
 
-    const passwordHash = await argon2.hash(password) ;
+    const userId = await createUser(email, passwordHash, verifyToken);
 
-    const verifyToken = uuid4() ;
+    // Envoi du mail avec le token brut
+    console.log("Avant envoi du mail :", email, verifyToken);
 
-    await createUser(email, passwordHash, verifyToken) ;
+    await sendVerificationMail(email, verifyToken);
 
-    await sendVerificationMail(email, verifyToken) ;
+    console.log("Mail envoyé !");
 
-    res.status(201).json({message: "Compte enregistré avec succès ! Veuillez maintenant vérifier votre email :)"}) ;
+    res.status(201).json({
+      success: true,
+      message: 'Inscription réussie ! Un email de confirmation vous a été envoyé.',
+    });
+  } catch (error) {
+    console.error('Register error:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
 
-    } catch (error) {
-        res.status(500).json({message: "erreur serveur", error:error.message})  ;
-    }
+// ---------------- LOGIN ----------------
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ success: false, message: 'Email et mot de passe requis' });
 
-} ;
+    const user = await findUserByEmail(email);
+    if (!user)
+      return res.status(400).json({ success: false, message: 'Email ou mot de passe incorrect' });
+
+    if (!user.is_verified)
+      return res.status(403).json({ success: false, message: 'Compte non vérifié!' });
+
+    const valid = await argon2.verify(user.master_password_hash, password);
+    if (!valid)
+      return res.status(400).json({ success: false, message: 'Email ou mot de passe incorrect' });
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    );
+
+    res.status(200).json({ success: true, token });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
+
+// ---------------- VERIFY EMAIL ----------------
 
 export const verifyEmail = async (req, res) => {
-    try {
-        const {token} = req.query ;
+  try {
 
-        const user = await findUserByVerifyToken(token) ;
+    const { token } = req.query;
 
-        if(!user) return res.status(400).json({message:'token invalide!'}) ;
+      console.log("Token reçu :", token); 
 
-        await verifyUser(user.id) ;
 
-        res.status(200).json({message:'Votre email a bien été vérifié :)'}) ;
-        
-    } catch (error) {
-        res.status(500).json({message: "erreur serveur", error:error.message}) ;
-        
-    }
- 
-} ;
 
-export const login = async(req,res) => {
-    try {
+    if (!token)
+      return res.status(400).json({ success: false, message: "Token manquant !" });
 
-        const {email, password} = req.body ;
+    const user = await findUserByVerifyToken(token);
 
-        const user = await findUserByEmail(email) ;
+      console.log("Utilisateur trouvé :", user); 
 
-        if(!user) return res.status(400).json({message:'Email ou mot de passe incorrecte'}) ;
 
-        if(!user.is_verified) return res.status(403).json({message:'Compte non vérifié!'}) ;
+    if (!user)
+      return res.status(400).json({ success: false, message: "Token invalide !" });
 
-        const valid = await argon2.verify(user.password_hash, password) ;
+    await verifyUser(user.id);
 
-        const token = jwt.sign({id: user.id, email: user.email, role: user.role}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN}) ;
+    res.status(200).json({ success: true, message: "Votre email a été vérifié !" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Erreur serveur", error: err.message });
+  }
+};
 
-        res.status(200).json({token}) ;
-        
-    } catch (error) {
-        res.status(500).json({message: "erreur serveur", error:error.message}) ;
-        
-    }
-
-} ;
 
 // Lien reset password
 
-export const resetPasswordRequest = async (req, res) => {
+/* export const resetPasswordRequest = async (req, res) => {
 
     try {
 
@@ -123,58 +149,6 @@ export const resetPassword = async (req, res) => {
         res.status(500).json({message: "erreur serveur", error: error.message}) ;
         
     }
-} ;
+} ; */
         
 
-
-
-
-/**
- * auth.controller.js – Contrôleurs pour l’authentification et la gestion des utilisateurs
- *
- * 1. Imports principaux :
- *    - `argon2` : pour hasher et vérifier les mots de passe.
- *    - `jsonwebtoken` : pour générer des JWT.
- *    - `uuid` : pour générer des tokens uniques (vérification email, reset password).
- *    - `db` : pool de connexions MySQL.
- *    - Fonctions du model `user.model.js` : createUser, findUserByEmail, verifyUser, etc.
- *    - Fonctions mailer : sendVerificationMail, sendResetPasswordMail.
- *
- * 2. register(req, res) :
- *    - Vérifie si l’email existe déjà.
- *    - Hash du mot de passe avec Argon2.
- *    - Création d’un token de vérification (UUID).
- *    - Création de l’utilisateur en DB.
- *    - Envoi d’un email de vérification.
- *    - Retourne un message de succès.
- *
- * 3. verifyEmail(req, res) :
- *    - Récupère le token depuis la query.
- *    - Cherche l’utilisateur correspondant.
- *    - Si valide, met à jour `is_verified` et supprime le token.
- *    - Retourne message de confirmation.
- *
- * 4. login(req, res) :
- *    - Vérifie email et mot de passe.
- *    - Vérifie si compte validé (`is_verified`).
- *    - Génère un JWT avec id, email, role et expiration.
- *    - Retourne le token au client.
- *
- * 5. resetPasswordRequest(req, res) :
- *    - Vérifie si l’email existe.
- *    - Génère un token UUID pour la réinitialisation.
- *    - Stocke le token en DB et envoie un email.
- *    - Retourne message de succès.
- *
- * 6. resetPassword(req, res) :
- *    - Vérifie le token et récupère l’utilisateur.
- *    - Hash le nouveau mot de passe.
- *    - Met à jour le mot de passe et supprime le token en DB.
- *    - Retourne message de succès.
- *
- * Résumé :
- * Ce fichier centralise toute la logique métier liée à l’authentification :
- * - Inscription, vérification email, login avec JWT.
- * - Gestion de la réinitialisation de mot de passe.
- * Il s’appuie sur les modèles pour interagir avec la DB et sur le mailer pour notifier l’utilisateur.
- */
