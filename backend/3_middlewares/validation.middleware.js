@@ -4,7 +4,7 @@ export const validateRegister = (req, res, next) => {
 
   const schema = z.object({
     email: z.email(),
-    password: z.string().min(6)
+    password: z.string().min(6).max(270)
 
   }) ;
 
@@ -46,7 +46,7 @@ export const validateLogin = (req, res, next) => {
       .status(400)
       .json({ message: e.errors.map((err) => err.message).join(", ") }) ;
   }
-} ;
+} ; 
 
 
 

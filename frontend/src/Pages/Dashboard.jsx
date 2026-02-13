@@ -1,18 +1,35 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Form from "../components/Form";
+import Sidebar from "../components/Sidebar";
+import VaultCard from "../components/VaultCard";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState([]);
   const [vaults, setVaults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const token = localStorage.getItem("token");
 
-  // Charger les catégories
+  // LOGOUT
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  // Protection si pas de token
+  useEffect(() => {
+    if (!token) navigate("/login");
+  }, [token, navigate]);
+
+  // Charger catégories
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -21,14 +38,14 @@ export default function Dashboard() {
         });
         setCategories(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Erreur chargement catégories :", err);
+        console.error(err);
         setCategories([]);
       }
     };
-    loadCategories();
+    if (token) loadCategories();
   }, [token]);
 
-  // Charger les vaults
+  // Charger vaults
   useEffect(() => {
     let isMounted = true;
     const loadVaults = async () => {
@@ -38,13 +55,13 @@ export default function Dashboard() {
         });
         if (isMounted) setVaults(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Erreur chargement vaults :", err);
+        console.error(err);
         if (isMounted) setVaults([]);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
-    loadVaults();
+    if (token) loadVaults();
     return () => { isMounted = false; };
   }, [token]);
 
@@ -56,161 +73,122 @@ export default function Dashboard() {
       });
       setVaults((prev) => prev.filter((v) => v.id !== id));
     } catch (err) {
-      console.error("Erreur suppression coffre :", err);
+      console.error(err);
     }
   };
 
+  const filteredVaults = selectedCategory
+    ? vaults.filter((v) => v.category_id === selectedCategory)
+    : vaults;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex">
-      {/* SIDEBAR */}
-      <aside className="w-72 bg-white border-r px-6 py-8 space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center text-lg">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex relative overflow-hidden">
+
+      {/* HEADER */}
+      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 flex items-center justify-between px-12 shadow-xl z-10">
+        <div className="flex items-center gap-4 text-white">
+          <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">
             🛡️
           </div>
           <div>
-            <p className="font-bold">SecureVault</p>
-            <p className="text-xs text-gray-500">Password Manager</p>
+            <p className="font-bold text-lg tracking-wide">SecureVault</p>
+            <p className="text-xs text-white/80">Dashboard sécurisé</p>
           </div>
         </div>
-
         <button
-          onClick={() => setShowCreate(true)}
-          className="w-full py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700 transition"
+          onClick={handleLogout}
+          className="px-5 py-2 rounded-xl bg-white/15 backdrop-blur-md text-white font-medium hover:bg-white/25 transition-all duration-200 shadow-md"
         >
-          ➕ Créer un coffre
+          Déconnexion
         </button>
+      </div>
 
-        <div>
-          <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
-            Catégories
-          </p>
-          <ul className="space-y-2">
-            <li
-              onClick={() => setVaults(vaults)}
-              className="px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100"
-            >
-              Tous
-            </li>
-            {categories.map((cat) => (
-              <li
-                key={cat.id}
-                className="px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100"
-              >
-                {cat.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
+      {/* SIDEBAR */}
+      <Sidebar
+        categories={categories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        onCreateClick={() => setShowCreate(true)}
+      />
 
       {/* MAIN */}
-      <main className="flex-1 p-10">
-        <h1 className="text-2xl font-bold mb-2">Mes coffres</h1>
-        <p className="text-gray-500 mb-8">
-          Gérez vos accès et mots de passe en toute sécurité
-        </p>
+      <main className="flex-1 pt-28 px-14 pb-14">
+        <div className="mb-12">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Mes coffres</h1>
+          <p className="text-slate-500">
+            Gérez vos identifiants et mots de passe en toute sécurité
+          </p>
+        </div>
 
         {loading ? (
-          <p>Chargement des coffres...</p>
+          <div className="flex items-center gap-3 text-indigo-600">
+            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            Chargement des coffres...
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {/* Tuile "Nouveau coffre" */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+
+            {/* CARD CREATE */}
             <div
               onClick={() => setShowCreate(true)}
-              className="border-2 border-dashed border-indigo-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-50 transition"
+              className="group bg-white/70 backdrop-blur-xl rounded-3xl p-10 flex flex-col items-center justify-center text-center cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl mb-3">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                 ➕
               </div>
-              <p className="font-semibold">Nouveau coffre</p>
-              <p className="text-sm text-gray-500">
-                Ajouter un site ou une application
-              </p>
+              <p className="font-semibold text-slate-700 text-lg">Ajouter un coffre</p>
+              <p className="text-sm text-slate-400 mt-1">Site web ou application</p>
             </div>
 
-            {/* Tuile vaults existants */}
-            {vaults.map((vault) => {
-              const category = categories.find((c) => c.id === vault.category_id);
+            {/* VAULT CARDS */}
+            {filteredVaults.map((vault) => {
+              const category = categories.find(c => c.id === vault.category_id);
               return (
-                <div
+                <VaultCard
                   key={vault.id}
-                  className="relative bg-white rounded-2xl p-6 shadow hover:shadow-lg transition flex flex-col justify-between"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">{vault.name}</h3>
-                    {vault.username && <p className="text-sm text-gray-600 mb-1">Utilisateur: {vault.username}</p>}
-                    {vault.url && <p className="text-sm text-gray-600 mb-1">URL: {vault.url}</p>}
-                    {category && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">
-                        {category.name}
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handleDeleteVault(vault.id)}
-                    className="absolute top-3 right-3 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                </div>
+                  vault={vault}
+                  category={category}
+                  onDelete={handleDeleteVault}
+                />
               );
             })}
           </div>
         )}
       </main>
 
-      {/* MODAL CREATE VAULT */}
+      {/* MODAL */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-            <h2 className="text-lg font-bold mb-4">Créer un nouveau coffre</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-fadeIn">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">✨ Nouveau coffre</h2>
+
             <Form
               submitLabel="Créer le coffre"
               successMessage="Coffre créé avec succès"
               inputs={[
-                {
-                  name: "name",
-                  label: "Nom du service",
-                  type: "text",
-                  validation: { required: "Champ requis" },
-                },
-                {
-                  name: "url",
-                  label: "URL",
-                  type: "text",
-                },
-                {
-                  name: "username",
-                  label: "Nom d'utilisateur",
-                  type: "text",
-                },
-                {
-                  name: "password",
-                  label: "Mot de passe",
-                  type: "password",
-                  validation: { required: "Champ requis" },
-                },
-                {
-                  name: "category_id",
-                  label: "Catégorie",
-                  type: "select",
-                  options: categories,
-                  validation: { required: "Sélection obligatoire" },
-                },
+                { name: "name", label: "Nom du service", type: "text" },
+                { name: "url", label: "URL", type: "text" },
+                { name: "username", label: "Nom d'utilisateur", type: "text" },
+                { name: "password", label: "Mot de passe", type: "password" },
+                { name: "category_id", label: "Catégorie", type: "select", options: categories },
               ]}
               onSubmit={async (data) => {
                 try {
                   const decodedToken = JSON.parse(atob(token.split(".")[1]));
-                  await axios.post(`${API_URL}/vaults`, {
-                    user_id: decodedToken.id,
-                    category_id: data.category_id,
-                    name: data.name,
-                    url: data.url || null,
-                    username: data.username || null,
-                    password: data.password,
-                  }, { headers: { Authorization: `Bearer ${token}` } });
+
+                  await axios.post(
+                    `${API_URL}/vaults`,
+                    {
+                      user_id: decodedToken.id,
+                      category_id: data.category_id,
+                      name: data.name,
+                      url: data.url || null,
+                      username: data.username || null,
+                      password: data.password,
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+
                   setShowCreate(false);
                 } catch (err) {
                   console.error("Erreur création coffre :", err);
@@ -220,9 +198,9 @@ export default function Dashboard() {
 
             <button
               onClick={() => setShowCreate(false)}
-              className="mt-4 w-full text-sm text-gray-500 hover:underline"
+              className="mt-6 w-full text-sm text-slate-400 hover:text-slate-600 transition"
             >
-              Fermer
+              Annuler
             </button>
           </div>
         </div>
