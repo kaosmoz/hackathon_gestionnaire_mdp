@@ -9,7 +9,7 @@ Gestionnaire de mots de passe avec authentification double facteur. Front React 
 [![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Démo live** : *(URL Render à insérer après déploiement)*
+
 
 ---
 
@@ -54,11 +54,22 @@ Gestionnaire de mots de passe avec authentification double facteur. Front React 
 
 ## Captures d'écran
 
-*(Placeholders — remplacer par les captures réelles)*
-
-| Page connexion | Dashboard credentials | Modal 2FA |
+| Page connexion | Notification d'envoie de mail | Message dans liste boîte mail | Corps du message avec CTA token | Master password crypté par argon2 | Dashboard du compte | Création du vault sécurisé |
 | --- | --- | --- |
-| ![Login](docs/screenshots/login.png) | ![Dashboard](docs/screenshots/dashboard.png) | ![2FA](docs/screenshots/2fa.png) |
+
+<img width="1920" height="972" alt="1-page-connexion" src="https://github.com/user-attachments/assets/b1681e8e-8f2c-4f35-9d1a-2a7f9a6d0764" />
+<img width="1920" height="972" alt="2-validation-mail" src="https://github.com/user-attachments/assets/080d4f0c-f50b-4366-97e7-9015baa13d1e" />
+<img width="1920" height="972" alt="3-boite-mail" src="https://github.com/user-attachments/assets/91fdd491-13f8-4358-af90-3a011f136758" />
+<img width="1920" height="972" alt="4-mail-validation" src="https://github.com/user-attachments/assets/3b303bfd-fd2d-477c-80d5-6c261c7cb203" />
+<img width="1645" height="366" alt="5-argon2-storage" src="https://github.com/user-attachments/assets/e456b4c4-cecb-465c-864d-d8a5f626e2bc" />
+<img width="1920" height="972" alt="6-dashboard" src="https://github.com/user-attachments/assets/16791f83-6f5b-4e5b-9955-1e6710c22ac9" />
+<img width="1920" height="972" alt="7-creation-vault" src="https://github.com/user-attachments/assets/cca973d7-a283-496f-b47f-eceb7c5a4889" />
+
+
+
+
+
+
 
 ---
 
@@ -217,11 +228,6 @@ Séparation stricte front / back : les deux peuvent être déployés indépendam
 
 ---
 
-## Licence
-
-MIT — voir [LICENSE](LICENSE).
-
----
 
 ## Auteur
 
